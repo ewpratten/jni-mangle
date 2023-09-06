@@ -1,13 +1,13 @@
 [package]
-name = "<crate_name>"
+name = "jni-mangle"
 version = "0.1.0"
 authors = ["Evan Pratten <ewpratten@gmail.com>"]
 edition = "2021"
 description = "<description>"
-documentation = "https://docs.rs/<crate_name>"
+documentation = "https://docs.rs/jni-mangle"
 readme = "README.md"
-homepage = "https://github.com/ewpratten/<repo_name>"
-repository = "https://github.com/ewpratten/<repo_name>"
+homepage = "https://github.com/ewpratten/jni-mangle"
+repository = "https://github.com/ewpratten/jni-mangle"
 license = "GPL-3.0"
 keywords = []
 categories = []
@@ -15,9 +15,10 @@ categories = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+darling = "^0.20.3"
+syn = "^2.0.31"
+quote = "^1.0.33"
+proc-macro2 = "^1.0.66"
 
-
-[[bin]]
-name = "<crate_name>"
-path = "src/main.rs"
-
+[lib]
+proc-macro = true

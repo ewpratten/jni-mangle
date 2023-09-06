@@ -1,8 +1,8 @@
-# <repo_name>
-[![Crates.io](https://img.shields.io/crates/v/<crate_name>)](https://crates.io/crates/<crate_name>) 
-[![Docs.rs](https://docs.rs/<crate_name>/badge.svg)](https://docs.rs/<crate_name>) 
-[![Build](https://github.com/Ewpratten/<repo_name>/actions/workflows/build.yml/badge.svg)](https://github.com/Ewpratten/<repo_name>/actions/workflows/build.yml)
-[![Clippy](https://github.com/Ewpratten/<repo_name>/actions/workflows/clippy.yml/badge.svg)](https://github.com/Ewpratten/<repo_name>/actions/workflows/clippy.yml)
+# jni-mangle
+[![Crates.io](https://img.shields.io/crates/v/jni-mangle)](https://crates.io/crates/jni-mangle) 
+[![Docs.rs](https://docs.rs/jni-mangle/badge.svg)](https://docs.rs/jni-mangle) 
+[![Build](https://github.com/Ewpratten/jni-mangle/actions/workflows/build.yml/badge.svg)](https://github.com/Ewpratten/jni-mangle/actions/workflows/build.yml)
+[![Clippy](https://github.com/Ewpratten/jni-mangle/actions/workflows/clippy.yml/badge.svg)](https://github.com/Ewpratten/jni-mangle/actions/workflows/clippy.yml)
 
 
 repo description
@@ -12,5 +12,5 @@ repo description
 This crate can be installed via `cargo` with:
 
 ```sh
-cargo install <crate_name>
+cargo install jni-mangle
 ```
