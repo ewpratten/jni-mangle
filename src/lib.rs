@@ -1,36 +1,13 @@
 #![doc = include_str!("../README.md")]
 #![deny(unsafe_code)]
 
+use args::{parse_macro_args, TOrTokens};
 use darling::{ast::NestedMeta, FromMeta, ToTokens};
-use mangle::escape::escape_string;
+use java_ident::escape::escape_string;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-
-mod mangle;
-
-enum TOrTokens<T> {
-    T(T),
-    Tokens(TokenStream),
-}
-
-fn parse_macro_args<T>(input: TokenStream) -> TOrTokens<T>
-where
-    T: FromMeta,
-{
-    let args_list = match NestedMeta::parse_meta_list(input.into()) {
-        Ok(v) => v,
-        Err(e) => {
-            return TOrTokens::Tokens(TokenStream::from(darling::Error::from(e).write_errors()));
-        }
-    };
-    match T::from_list(&args_list) {
-        Ok(v) => return TOrTokens::T(v),
-        Err(e) => {
-            return TOrTokens::Tokens(TokenStream::from(e.write_errors()));
-        }
-    };
-}
+mod args;
 
 #[derive(Debug, FromMeta)]
 struct MangleArgs {
@@ -117,7 +94,9 @@ pub fn mangle_raw(args: TokenStream, input: TokenStream) -> TokenStream {
         let fn_attrs = input.attrs;
 
         // Convert fn_args to a string of arg names
-        let inner_fn_args_list = input.sig.inputs
+        let inner_fn_args_list = input
+            .sig
+            .inputs
             .iter()
             .map(|arg| match arg {
                 syn::FnArg::Receiver(_) => panic!("Cannot alias a method with a receiver"),
