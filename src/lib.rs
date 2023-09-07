@@ -2,12 +2,16 @@
 #![deny(unsafe_code)]
 
 use args::{parse_macro_args, TOrTokens};
-use darling::{ast::NestedMeta, FromMeta, ToTokens};
-use java_ident::escape::escape_string;
+use darling::{FromMeta, ToTokens};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
+use utils::{
+    escape::escape_string,
+    validators::{is_valid_class, is_valid_method, is_valid_package},
+};
 mod args;
+mod utils;
 
 #[derive(Debug, FromMeta)]
 struct MangleArgs {
@@ -29,13 +33,31 @@ pub fn mangle(args: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the function
     let input = syn::parse_macro_input!(input as syn::ItemFn);
     let input_function_name = input.sig.ident.to_string();
+    let output_function_name = args.method.unwrap_or(input_function_name);
+
+    // We need valid inputs
+    if !is_valid_package(&args.package) {
+        return syn::Error::new_spanned(args.package, "Invalid Java package name")
+            .to_compile_error()
+            .into();
+    }
+    if !is_valid_class(&args.class) {
+        return syn::Error::new_spanned(args.class, "Invalid Java class name")
+            .to_compile_error()
+            .into();
+    }
+    if !is_valid_method(&output_function_name) {
+        return syn::Error::new_spanned(output_function_name, "Invalid Java method name")
+            .to_compile_error()
+            .into();
+    }
 
     // Build the mangled function name
     let mut mangled_fn_name = format!(
         "Java_{}_{}_{}",
         escape_string(&args.package),
         escape_string(&args.class),
-        escape_string(&args.method.unwrap_or(input_function_name))
+        escape_string(&output_function_name)
     );
 
     // If we have args, append them to the mangled name
