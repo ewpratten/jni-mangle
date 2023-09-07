@@ -1,5 +1,16 @@
-on: [push, pull_request]
 name: Clippy
+
+on:
+  push:
+    paths: 
+      - '.github/workflows/clippy.yml'
+      - '**/Cargo.toml'
+      - '**/*.rs'
+
+permissions:
+  checks: write
+  contents: read
+
 jobs:
   clippy_check:
     runs-on: ubuntu-latest
