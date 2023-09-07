@@ -3,16 +3,14 @@ name = "jni-mangle"
 version = "0.1.0"
 authors = ["Evan Pratten <ewpratten@gmail.com>"]
 edition = "2021"
-description = "<description>"
+description = "Mangle Rust functions for use with JNI"
 documentation = "https://docs.rs/jni-mangle"
 readme = "README.md"
 homepage = "https://github.com/ewpratten/jni-mangle"
 repository = "https://github.com/ewpratten/jni-mangle"
 license = "GPL-3.0"
-keywords = []
-categories = []
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+keywords = ["jni", "function-signature"]
+categories = ["development-tools::ffi", "rust-patterns"]
 
 [dependencies]
 darling = "^0.20.3"
