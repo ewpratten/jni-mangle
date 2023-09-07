@@ -138,7 +138,7 @@ struct MangleRawArgs {
 /// // the original name since `alias` is enabled by default
 /// assert_eq!(
 ///    add_two_numbers(1, 2),   
-///   Java_com_example_Example_addTwoNumbers(1, 2)
+///    Java_com_example_Example_addTwoNumbers(1, 2)
 /// );
 /// ```
 #[proc_macro_attribute]

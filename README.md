@@ -9,7 +9,6 @@ The `jni-mangle` crate provides proc macros for working with Rust functions that
 The main purpose of this crate is to turn rust functions that might look like this:
 
 ```rust
-
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn Java_com_example_Example_addTwoNumbers(a: i32, b: i32) -> i32 {
