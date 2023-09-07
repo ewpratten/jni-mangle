@@ -1,6 +1,6 @@
 [package]
 name = "jni-mangle"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Evan Pratten <ewpratten@gmail.com>"]
 edition = "2021"
 description = "Mangle Rust functions for use with JNI"

@@ -21,6 +21,15 @@ pub fn add_two_numbers(a: i32, b: i32) -> i32 {
     a + b
 }
 
+/// This function acts as a test case for lots of language features
+#[mangle(package = "com.example", class = "Example")]
+pub fn test_fn<'a, T>(var: &'a T) -> String
+where
+    T: ToString,
+{
+    format!("test_fn({})", var.to_string())
+}
+
 pub fn main() {
     // my_rust_function is available as both a rust function and a java one
     Java_com_example_Example_my_1rust_1function("Called using mangled name");

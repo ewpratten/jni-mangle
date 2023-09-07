@@ -6,6 +6,7 @@ use darling::{FromMeta, ToTokens};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
+use syn::Block;
 use utils::{
     escape::escape_string,
     validators::{is_valid_class, is_valid_method, is_valid_package},
@@ -51,7 +52,7 @@ struct MangleArgs {
 ///    a + b    
 /// }
 ///
-/// // This function is callable from rust using both the mangled name and 
+/// // This function is callable from rust using both the mangled name and
 /// // the original name since `alias` is enabled by default
 /// assert_eq!(
 ///     add_two_numbers(1, 2),
@@ -120,20 +121,20 @@ struct MangleRawArgs {
 
 /// # Warning: You probably don't want to use this unless you know what you're doing
 /// Mangles a Rust function to be callable from Java through JNI with no validation on the name
-/// 
+///
 /// ## Macro arguments
 /// - `name`: The name to mangle the function to
-/// - `alias`: Whether to alias the function with the original name 
-/// 
+/// - `alias`: Whether to alias the function with the original name
+///
 /// ## Example
 /// ```
 /// use jni_mangle::mangle_raw;
-/// 
+///
 /// #[mangle_raw(name="Java_com_example_Example_addTwoNumbers", alias=true)]
 /// pub fn add_two_numbers(a: i32, b: i32) -> i32 {
 ///   a + b
 /// }
-/// 
+///
 /// // This function is callable from rust using both the mangled name and
 /// // the original name since `alias` is enabled by default
 /// assert_eq!(
@@ -150,35 +151,32 @@ pub fn mangle_raw(args: TokenStream, input: TokenStream) -> TokenStream {
     };
 
     // Parse the function
-    let mut input = syn::parse_macro_input!(input as syn::ItemFn);
+    let input_fn = syn::parse_macro_input!(input as syn::ItemFn);
+    let mut output_fn = input_fn.clone();
 
     // Rename the function
-    let rust_name_ident = input.sig.ident.clone();
-    input.sig.ident = syn::Ident::new(&args.name, input.sig.ident.span());
+    let rust_name_ident = output_fn.sig.ident.clone();
+    output_fn.sig.ident = syn::Ident::new(&args.name, output_fn.sig.ident.span());
 
     // Set the function to be `extern "system"`
-    input.sig.abi = Some(syn::parse_quote! { extern "system" });
+    output_fn.sig.abi = Some(syn::parse_quote! { extern "system" });
 
     // Wrap the function in needed attributes
     let mut output = quote! {
         #[no_mangle]
         #[allow(non_snake_case)]
-        #input
+        #output_fn
     };
 
     // If aliasing is enabled, add another function with the original name and args
     if args.alias {
-        // Create the needed identifiers
-        let java_name_ident = input.sig.ident; // This was defined earlier
-        let rust_name_ident = rust_name_ident; // This was defined earlier
-        let fn_args = input.sig.inputs.clone();
-        let fn_args = fn_args.iter();
-        let fn_return = input.sig.output;
-        let fn_visiblity = input.vis;
-        let fn_attrs = input.attrs;
+        // Clone the input function again to modify into the aliased function. 
+        // The reason for doing this is to avoid needing to copy over every generic, 
+        // docstring, modifier, where clause, etc...
+        let mut alias_fn = input_fn.clone();
 
-        // Convert fn_args to a string of arg names
-        let inner_fn_args_list = input
+        // Build a list of tokens to be the arguments for the inner function
+        let inner_fn_args_list = alias_fn
             .sig
             .inputs
             .iter()
@@ -189,16 +187,22 @@ pub fn mangle_raw(args: TokenStream, input: TokenStream) -> TokenStream {
             .map(|pat| quote! { #pat })
             .collect::<Vec<TokenStream2>>();
 
-        // Build the alias function
-        let alias_fn_output = quote! {
-            #(#fn_attrs)*
-            #fn_visiblity fn #rust_name_ident (#(#fn_args),*) #fn_return {
-                #java_name_ident (#(#inner_fn_args_list),*)
+        // Replace the name with the original name again
+        alias_fn.sig.ident = rust_name_ident.clone();
+
+        // Replace the body with a function call
+        alias_fn.block = Box::new(syn::parse_quote! {
+            {
+                #rust_name_ident (#(#inner_fn_args_list),*)
             }
-        };
+        });
 
         // Extend the output with the alias function
-        output.extend(alias_fn_output);
+        output.extend(quote! {
+            #[no_mangle]
+            #[allow(non_snake_case)]
+            #alias_fn
+        });
     }
 
     output.into()
