@@ -20,9 +20,9 @@ where
         }
     };
     match T::from_list(&args_list) {
-        Ok(v) => return TOrTokens::T(v),
+        Ok(v) => TOrTokens::T(v),
         Err(e) => {
-            return TOrTokens::Tokens(TokenStream::from(e.write_errors()));
+            TOrTokens::Tokens(TokenStream::from(e.write_errors()))
         }
-    };
+    }
 }
