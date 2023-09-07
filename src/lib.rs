@@ -13,15 +13,51 @@ use utils::{
 mod args;
 mod utils;
 
+/// Arguments accepted by the `#[mangle]` macro
 #[derive(Debug, FromMeta)]
 struct MangleArgs {
+    /// Java package name
     package: String,
+    /// Java class name
     class: String,
+    /// Java method name (or just the Rust function name if not specified)
     method: Option<String>,
+    /// Optional Java args (used to disambiguate overloaded functions)
     args: Option<String>,
+    /// Whether to alias the function with the original name
     alias: Option<bool>,
 }
 
+/// Mangle a Rust function to be callable from Java through JNI
+///
+/// This will generate an `extern "system"` function that is correctly named to be called from Java.
+///
+/// ## Macro arguments
+/// - `package`: The Java package name
+/// - `class`: The Java class name this method belongs to
+/// - `method` (optional): The Java method name (defaults to the Rust function name)
+/// - `args` (optional): The Java method args (used to disambiguate overloaded functions)
+/// - `alias` (optional): Whether to alias the function with the original name (defaults to `true`)
+///
+/// Aliasing allows the function to be called from Rust using its original name as well as from Java using
+/// the mangled name. If Aliasing is disabled, the rust function name will not be callable from Rust.
+///
+/// ## Example
+/// ```
+/// use jni_mangle::mangle;
+///
+/// #[mangle(package="com.example", class="Example", method="addTwoNumbers")]
+/// pub fn add_two_numbers(a: i32, b: i32) -> i32 {
+///    a + b    
+/// }
+///
+/// // This function is callable from rust using both the mangled name and 
+/// // the original name since `alias` is enabled by default
+/// assert_eq!(
+///     add_two_numbers(1, 2),
+///     Java_com_example_Example_addTwoNumbers(1, 2)
+/// );
+/// ```
 #[proc_macro_attribute]
 pub fn mangle(args: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the attribute arguments
@@ -73,12 +109,38 @@ pub fn mangle(args: TokenStream, input: TokenStream) -> TokenStream {
     )
 }
 
+/// Arguments accepted by the `#[mangle_raw]` macro
 #[derive(Debug, FromMeta)]
 struct MangleRawArgs {
+    /// The name to mangle the function to
     name: String,
+    /// Whether to alias the function with the original name
     alias: bool,
 }
 
+/// # Warning: You probably don't want to use this unless you know what you're doing
+/// Mangles a Rust function to be callable from Java through JNI with no validation on the name
+/// 
+/// ## Macro arguments
+/// - `name`: The name to mangle the function to
+/// - `alias`: Whether to alias the function with the original name 
+/// 
+/// ## Example
+/// ```
+/// use jni_mangle::mangle_raw;
+/// 
+/// #[mangle_raw(name="Java_com_example_Example_addTwoNumbers", alias=true)]
+/// pub fn add_two_numbers(a: i32, b: i32) -> i32 {
+///   a + b
+/// }
+/// 
+/// // This function is callable from rust using both the mangled name and
+/// // the original name since `alias` is enabled by default
+/// assert_eq!(
+///    add_two_numbers(1, 2),   
+///   Java_com_example_Example_addTwoNumbers(1, 2)
+/// );
+/// ```
 #[proc_macro_attribute]
 pub fn mangle_raw(args: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the attribute arguments
